@@ -11,6 +11,8 @@ public class MainWindow : System.Windows.Forms.Form
     private Label Dependency;
     private Label closeButtn;
     private Label InitButton;
+    private Label Info;
+    private Timer timer1;
     private string[] args = { "0.0.0.0 youtube.com www.youtube.com" ,
         "0.0.0.0 facebook.com www.facebook.com m.facebook.com",
     "0.0.0.0 twitter.com www.twitter.com" ,
@@ -20,12 +22,26 @@ public class MainWindow : System.Windows.Forms.Form
     "0.0.0.0 twitch.tv www.twitch.com",
     "0.0.0.0 bilibili.com www.bilibili.com",
     "0.0.0.0 pixiv.net www.pixiv.net",
-    "0.0.0.0 pinterest.com www.pinterest.com id.pinterest.com"
+    "0.0.0.0 pinterest.com www.pinterest.com id.pinterest.com pinterest.de",
+    "0.0.0.0 fiver.com www.fiver.com"
     };
 
     public MainWindow()
     {
         InitializeComponent();
+        CheckBlockWebsite();
+    }
+    private void CheckBlockWebsite()
+    {
+        var lines = File.ReadAllLines("file.txt");
+        for (int i = 0; i < lines.Length; i += 1)
+        {
+            string line = lines[i];int data;
+            if(int.TryParse(line,out data))
+            {
+                WebsiteList.SetItemChecked(data, true);
+            }
+        }
     }
     private void BlockWebsite(object sender, System.EventArgs arg)
     {
@@ -47,20 +63,47 @@ public class MainWindow : System.Windows.Forms.Form
                 Console.WriteLine(ex.Message);
             }
         }
+        this.Info.Visible = true;
+        this.timer1.Enabled = true;
     }
-
     private void CloseApp(object sender, System.EventArgs arg) 
     {
+        File.WriteAllText("file.txt", string.Empty);
+        FileStream fileStream = new FileStream("file.txt", FileMode.OpenOrCreate);
+        StreamWriter writer = new StreamWriter(fileStream);
+        foreach (object itemChecked in WebsiteList.CheckedItems)
+        {
+            int index = WebsiteList.Items.IndexOf(itemChecked);
+            writer.WriteLine(index);
+        }
+        writer.Close();
+        fileStream.Close();
         Application.Exit();
+    }
+    private void TimeElapsedEnded(object sender, System.EventArgs arg)
+    {
+        this.Info.Visible = false;
+        this.timer1.Enabled = false;
+    }
+    private void MouseHoverOnInitBttn(object sender, EventArgs e)
+    {
+        this.InitButton.BackColor = System.Drawing.Color.Gray;
+    }
+    private void MouseLeaveOnInitBttn(object sender, EventArgs e) 
+    {
+        this.InitButton.BackColor = System.Drawing.Color.Black;
     }
     private void InitializeComponent()
     {
+            this.components = new System.ComponentModel.Container();
             this.WebsiteList = new System.Windows.Forms.CheckedListBox();
             this.Header = new System.Windows.Forms.Label();
             this.Title = new System.Windows.Forms.Label();
             this.Dependency = new System.Windows.Forms.Label();
             this.closeButtn = new System.Windows.Forms.Label();
             this.InitButton = new System.Windows.Forms.Label();
+            this.Info = new System.Windows.Forms.Label();
+            this.timer1 = new System.Windows.Forms.Timer(this.components);
             this.SuspendLayout();
             // 
             // WebsiteList
@@ -80,20 +123,19 @@ public class MainWindow : System.Windows.Forms.Form
             "Twitch",
             "Bilibili",
             "Pixiv",
-            "Pinterest"
-            });
+            "Pinterest",
+            "Fiver"});
             this.WebsiteList.Location = new System.Drawing.Point(212, 127);
             this.WebsiteList.Name = "WebsiteList";
             this.WebsiteList.Size = new System.Drawing.Size(220, 118);
             this.WebsiteList.TabIndex = 2;
-            this.WebsiteList.ItemCheck += new System.Windows.Forms.ItemCheckEventHandler(this.BlockWebsite);
             // 
             // Header
             // 
             this.Header.AutoSize = true;
             this.Header.Font = new System.Drawing.Font("Bahnschrift SemiCondensed", 23F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.Header.ForeColor = System.Drawing.SystemColors.Control;
-            this.Header.Location = new System.Drawing.Point(212, 95);
+            this.Header.Location = new System.Drawing.Point(212, 91);
             this.Header.Name = "Header";
             this.Header.Size = new System.Drawing.Size(315, 55);
             this.Header.TabIndex = 1;
@@ -117,9 +159,9 @@ public class MainWindow : System.Windows.Forms.Form
             this.Dependency.ForeColor = System.Drawing.Color.White;
             this.Dependency.Location = new System.Drawing.Point(12, 401);
             this.Dependency.Name = "Dependency";
-            this.Dependency.Size = new System.Drawing.Size(452, 39);
+            this.Dependency.Size = new System.Drawing.Size(636, 39);
             this.Dependency.TabIndex = 4;
-            this.Dependency.Text = "√ Name website you want to block";
+            this.Dependency.Text = "√ Name website you want to block then click INIT";
             // 
             // closeButtn
             // 
@@ -145,13 +187,33 @@ public class MainWindow : System.Windows.Forms.Form
             this.InitButton.TabIndex = 6;
             this.InitButton.Text = "INIT";
             this.InitButton.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            this.InitButton.Click += new System.EventHandler(BlockWebsite);
+            this.InitButton.Click += new System.EventHandler(this.BlockWebsite);
+            this.InitButton.MouseLeave += new System.EventHandler(this.MouseLeaveOnInitBttn);
+            this.InitButton.MouseHover += new System.EventHandler(this.MouseHoverOnInitBttn);
+            // 
+            // Info
+            // 
+            this.Info.AutoSize = true;
+            this.Info.Font = new System.Drawing.Font("Bahnschrift SemiCondensed", 16F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.Info.ForeColor = System.Drawing.Color.White;
+            this.Info.Location = new System.Drawing.Point(12, 357);
+            this.Info.Name = "Info";
+            this.Info.Size = new System.Drawing.Size(416, 39);
+            this.Info.TabIndex = 7;
+            this.Info.Text = "√ INIT Button have been clicked";
+            this.Info.Visible = false;
+            // 
+            // timer1
+            // 
+            this.timer1.Interval = 2000;
+            this.timer1.Tick += new System.EventHandler(this.TimeElapsedEnded);
             // 
             // MainWindow
             // 
             this.BackColor = System.Drawing.Color.Black;
             this.ClientSize = new System.Drawing.Size(678, 444);
             this.ControlBox = false;
+            this.Controls.Add(this.Info);
             this.Controls.Add(this.InitButton);
             this.Controls.Add(this.closeButtn);
             this.Controls.Add(this.Dependency);
